@@ -1,6 +1,7 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from foodtracker.models import FoodLog
 
 
-def hello_world(request):
-    return HttpResponse("Hello World")
+def list_food_logs(request):
+    food_logs = FoodLog.objects.all().order_by("-feeddatetime")
+    return render(request, "foodtracker/food_log_list.html", {"food_logs": food_logs})
