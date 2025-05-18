@@ -19,6 +19,7 @@ psycopg2-binary = "^2.9.10"
 pytest = "^8.3.5"
 black = "^25.1.0"
 mypy = "^1.15.0"
+gunicorn = "^23.0.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

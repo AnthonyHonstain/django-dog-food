@@ -12,7 +12,7 @@
 * `python manage.py migrate`
 * `python manage.py createsuperuser`
 * `python manage.py runserver 8002`
-    *  Alternatively can run with gunicorn `gunicorn --bind 0.0.0.0:8002 finance_service.wsgi -w 1`
+    *  Alternatively can run with gunicorn `gunicorn --bind 0.0.0.0:8002 dogfood.wsgi -w 1`
 * `python manage.py test`
 * `mypy .`
 * `black .`
@@ -31,10 +31,11 @@ poetry new django-dog-food
 poetry add django
 poetry add django-stubs
 poetry add psycopg2-binary
-
-poetry add --group dev pytest
-poetry add --group dev black
-poetry add --group dev mypy
+poetry add pytest
+poetry add pytest-django
+poetry add black
+poetry add mypy
+poetry add gunicorn
 
 
 django-admin startproject dogfood
