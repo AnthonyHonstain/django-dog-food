@@ -25,11 +25,4 @@ EXPOSE 8002
 RUN python manage.py migrate
 
 # Run the app
-CMD [
-   "poetry", "run", "gunicorn", "--bind", "0.0.0.0:8002",
-   "dogfood.wsgi:application",
-   "-w", "4",
-   "--log-level", "debug",
-   "--access-logfile", "-",
-   "--error-logfile", "-"
-]
+CMD ["poetry", "run", "gunicorn", "--bind", "0.0.0.0:8002", "dogfood.wsgi:application", "-w", "4", "--log-level", "debug", "--access-logfile", "-", "--error-logfile", "-"]
