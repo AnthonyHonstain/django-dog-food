@@ -22,4 +22,4 @@ COPY . /app/
 EXPOSE 8002
 
 # Run the app
-CMD ["gunicorn", "--bind", "0.0.0.0:8002", "dogfood.wsgi", "-w", "4"]
+CMD ["poetry", "run", "gunicorn", "--bind", "0.0.0.0:8002", "dogfood.wsgi", "-w", "4"]

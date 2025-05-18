@@ -19,6 +19,28 @@
 
 ---
 
+### Building the docker image
+
+```shell
+docker build -t django-dog-food .
+
+docker run -it --rm -p 8002:8002 django-dog-food 
+```
+
+What it looks like when the docker container starts
+```shell
+❯ docker run -it --rm -p 8002:8002 django-dog-food 
+
+Skipping virtualenv creation, as specified in config file.
+[2025-05-18 20:19:39 +0000] [1] [INFO] Starting gunicorn 23.0.0
+[2025-05-18 20:19:39 +0000] [1] [INFO] Listening at: http://0.0.0.0:8002 (1)
+[2025-05-18 20:19:39 +0000] [1] [INFO] Using worker: sync
+[2025-05-18 20:19:39 +0000] [12] [INFO] Booting worker with pid: 12
+[2025-05-18 20:19:39 +0000] [13] [INFO] Booting worker with pid: 13
+[2025-05-18 20:19:39 +0000] [14] [INFO] Booting worker with pid: 14
+[2025-05-18 20:19:39 +0000] [15] [INFO] Booting worker with pid: 15
+```
+
 ### How I created the service
 
 Get poetry bootstrapped
