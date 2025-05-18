@@ -5,35 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Food Log</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.1.3/dist/css/bootstrap-dark.min.css" rel="stylesheet">
+<style>
+  body { background-color: #181a1b !important; }
+</style>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 </head>
 <body>
-    <div class="container mt-4">
-        <h1 class="mb-4">Food & Water Log</h1>
-        
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Timestamp (UTC)</th>
-                        <th>Food Quantity</th>
-                        <th>Water Quantity</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for log in food_logs %}
-                    <tr>
-                        <td>{{ log.feeddatetime|date:"Y-m-d H:i:s" }}</td>
-                        <td>{{ log.food_qty }}</td>
-                        <td>{{ log.water_qty }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="3" class="text-center">No food logs available.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+<div class="container mt-4 bg-dark text-light rounded-3 p-4">
+    <h1 class="mb-4">Food & Water Log</h1>
+
+    <div id="food-log-form-container">
+        {% include 'foodtracker/partials/food_log_form.html' %}
     </div>
+    <div class="table-responsive">
+        <table class="table table-dark table-striped">
+            <thead class="table-dark">
+            <tr>
+                <th>Timestamp</th>
+                <th>Food Quantity</th>
+                <th>Water Quantity</th>
+            </tr>
+            </thead>
+            <tbody id="food-log-table-body">
+            {% for log in food_logs %}
+                {% include 'foodtracker/partials/food_log_row.html' %}
+            {% empty %}
+                <tr>
+                    <td colspan="3" class="text-center">No food logs available.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+    function formatLocalDatetimes() {
+        document.querySelectorAll('.local-datetime').forEach(function (el) {
+            const iso = el.getAttribute('data-utc-dt');
+            if (iso) {
+                const date = new Date(iso);
+                if (!isNaN(date)) {
+                    // Format as YYYY-MM-DD HH:mm (local)
+                    const y = date.getFullYear();
+                    const m = String(date.getMonth() + 1).padStart(2, '0');
+                    const d = String(date.getDate()).padStart(2, '0');
+                    const hr = String(date.getHours()).padStart(2, '0');
+                    const min = String(date.getMinutes()).padStart(2, '0');
+                    el.textContent = `${y}-${m}-${d} ${hr}:${min}`;
+                }
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', formatLocalDatetimes);
+    document.body.addEventListener('htmx:afterSwap', formatLocalDatetimes);
+</script>
 </body>
 </html>

@@ -37,3 +37,20 @@ class TestListFoodLogsView(TestCase):
         first_pos = content.find("2025-05-11 15:30:00")
         second_pos = content.find("2025-05-11 14:30:00")
         self.assertLess(first_pos, second_pos)  # Newer date should appear first
+
+
+class TestAddFoodLogHTMX(TestCase):
+    def setUp(self):
+        self.client = Client()
+
+    def test_add_food_log_htmx(self):
+        url = reverse('add_food_log')
+        response = self.client.post(url, {
+            'food_qty': 42,
+            'water_qty': 37,
+        }, HTTP_HX_REQUEST='true')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('<tr>', response.content.decode())
+        self.assertIn('42', response.content.decode())
+        self.assertIn('37', response.content.decode())
+        self.assertTrue(FoodLog.objects.filter(food_qty=42, water_qty=37).exists())
