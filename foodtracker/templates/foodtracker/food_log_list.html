@@ -1,72 +1,126 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Food Log</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.1.3/dist/css/bootstrap-dark.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css"/>
 
     <!-- CSRF token exposed for JavaScript -->
     <meta name="csrf-token" content="{{ csrf_token }}">
 
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- HTMX CSRF setup -->
+    <!-- HTMX CSRF setup and initialization -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        function initializeTooltips() {
+            if (typeof tippy !== 'undefined') {
+                tippy('[data-tippy-content]');
+            } else {
+                console.warn('Tippy.js not loaded yet');
+                setTimeout(initializeTooltips, 100);
+            }
+        }
+
+        function setupCSRF() {
             document.body.addEventListener('htmx:configRequest', function (event) {
                 const token = document.querySelector('meta[name="csrf-token"]')?.content;
                 if (token) {
                     event.detail.headers['X-CSRFToken'] = token;
                 }
             });
+        }
+
+        function setupFoodLogListener() {
+            document.body.addEventListener('foodLogAdded', function() {
+                // Clean up any pending chart initializations
+                if (window.chartInitTimeout) {
+                    clearTimeout(window.chartInitTimeout);
+                }
+                // Clean up any existing chart
+                if (window.foodChart) {
+                    window.foodChart.destroy();
+                    window.foodChart = null;
+                }
+                
+                // Small delay to ensure the server has processed the request
+                setTimeout(() => {
+                    if (window.location.pathname === '/') {
+                        htmx.ajax('GET', '/', '#main-content');
+                    } else {
+                        htmx.ajax('GET', '/chart/', '#main-content');
+                    }
+                }, 100);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTooltips();
+            setupCSRF();
+            setupFoodLogListener();
         });
     </script>
 
     <style>
         body {
             background-color: #181a1b !important;
+            padding-top: 1rem;
+        }
+        .nav-tabs .nav-link {
+            color: #dee2e6;
+        }
+        .nav-tabs .nav-link.active {
+            background-color: #212529;
+            border-color: #495057 #495057 #212529;
+            color: #fff;
+        }
+        .nav-tabs {
+            border-bottom: 1px solid #495057;
+        }
+        .nav-tabs .nav-link:not(.active):hover {
+            border-color: #495057 #495057 #495057;
+            background-color: #2c3034;
         }
     </style>
 </head>
 <body>
 <div class="container mt-4 bg-dark text-light rounded-3 p-4">
-    <h1 class="mb-4">Food & Water Log</h1>
-
-    <div class="card bg-dark border-secondary mb-4">
-        <div class="card-header">Daily Food Intake</div>
-        <div class="card-body">
-            <canvas id="foodHistogram" height="200"></canvas>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Food & Water Log</h1>
+        <div class="btn-group" role="group">
+            <a href="{% url 'list_food_logs' %}" 
+               class="btn btn-outline-primary {% if not show_chart %}active{% endif %}"
+               hx-get="{% url 'list_food_logs' %}" 
+               hx-target="#main-content"
+               hx-push-url="true">
+                <i class="bi bi-list-ul"></i> Logs
+            </a>
+            <a href="{% url 'food_logs_chart' %}" 
+               class="btn btn-outline-primary {% if show_chart %}active{% endif %}"
+               hx-get="{% url 'food_logs_chart' %}" 
+               hx-target="#main-content"
+               hx-push-url="true">
+                <i class="bi bi-bar-chart"></i> Chart
+            </a>
         </div>
     </div>
 
-    <div id="food-log-form-container">
-        {% include 'foodtracker/partials/food_log_form.html' %}
-    </div>
-    <div class="table-responsive">
-        <table class="table table-dark table-striped">
-            <thead class="table-dark">
-            <tr>
-                <th>Timestamp</th>
-                <th>Food Quantity</th>
-                <th>Water Quantity</th>
-            </tr>
-            </thead>
-            <tbody id="food-log-table-body">
-            {% for log in food_logs %}
-                {% include 'foodtracker/partials/food_log_row.html' %}
-            {% empty %}
-                <tr>
-                    <td colspan="3" class="text-center">No food logs available.</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+    <div id="main-content">
+        {% if show_chart %}
+            {% include 'foodtracker/partials/food_chart.html' %}
+        {% else %}
+            {% include 'foodtracker/partials/food_log_list_content.html' %}
+        {% endif %}
     </div>
 </div>
 <script>
+    // Format datetime strings to local time
     function formatLocalDatetimes() {
         document.querySelectorAll('.local-datetime').forEach(function (el) {
             const iso = el.getAttribute('data-utc-dt');
@@ -85,104 +139,11 @@
         });
     }
 
-    function initializeChart() {
-        // Get the data from the table
-        const rows = document.querySelectorAll('#food-log-table-body tr');
-        const dataByDay = {};
-
-        // Group data by day
-        rows.forEach(row => {
-            const dateCell = row.querySelector('.local-datetime');
-            if (!dateCell) return;
-
-            const dateStr = dateCell.textContent.trim().split(' ')[0]; // Get just the date part
-            const foodQty = parseFloat(row.cells[1].textContent.trim()) || 0;
-
-            if (!dataByDay[dateStr]) {
-                dataByDay[dateStr] = 0;
-            }
-            dataByDay[dateStr] += foodQty;
-        });
-
-        // Sort dates chronologically
-        const sortedDates = Object.keys(dataByDay).sort((a, b) => new Date(a) - new Date(b));
-        const chartData = sortedDates.map(date => dataByDay[date]);
-
-        // Create the chart
-        const ctx = document.getElementById('foodHistogram').getContext('2d');
-        if (window.foodChart) {
-            window.foodChart.destroy();
-        }
-
-        window.foodChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: sortedDates,
-                datasets: [{
-                    label: 'Total Food',
-                    data: chartData,
-                    backgroundColor: 'rgba(13, 110, 253, 0.5)',
-                    borderColor: 'rgba(13, 110, 253, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Food Quantity',
-                            color: '#dee2e6'
-                        },
-                        ticks: {
-                            color: '#dee2e6'
-                        },
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Date',
-                            color: '#dee2e6'
-                        },
-                        ticks: {
-                            color: '#dee2e6',
-                            maxRotation: 45,
-                            minRotation: 45
-                        },
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#dee2e6'
-                        }
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        titleColor: '#fff',
-                        bodyColor: '#fff',
-                        borderColor: 'rgba(255, 255, 255, 0.1)',
-                        borderWidth: 1
-                    }
-                }
-            }
-        });
-    }
-
+    // Initialize the page when content is loaded or after HTMX swaps
     function initializePage() {
         formatLocalDatetimes();
-        initializeChart();
+        // Initialize tooltips for any new elements
+        tippy('[data-tippy-content]');
     }
 
     document.addEventListener('DOMContentLoaded', initializePage);

@@ -1,0 +1,211 @@
+<div class="card bg-dark border-secondary mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Daily Food Intake</span>
+        <div>
+            <button class="btn btn-sm btn-outline-secondary me-2" hx-get="{% url 'list_food_logs' %}" hx-target="#main-content" hx-push-url="true">
+                <i class="bi bi-list-ul"></i> View Logs
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <canvas id="foodHistogram" height="300"></canvas>
+    </div>
+</div>
+
+<script>
+    function initializeChart() {
+        const chartElement = document.getElementById('foodHistogram');
+        if (!chartElement) {
+            console.error('Chart element not found');
+            return;
+        }
+
+        // Show loading state
+        const ctx = chartElement.getContext('2d');
+        
+        // Check if Chart is available
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js not loaded');
+            return;
+        }
+
+        // Destroy existing chart if it exists
+        if (window.foodChart) {
+            window.foodChart.destroy();
+        }
+
+        // Show loading state
+        ctx.save();
+        ctx.fillStyle = '#495057';
+        ctx.fillRect(0, 0, chartElement.width, chartElement.height);
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.fillText('Loading chart data...', chartElement.width / 2, chartElement.height / 2);
+        ctx.restore();
+
+        // Get the data from the server
+        fetch("{% url 'food_logs_chart_data' %}")
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data || !Array.isArray(data.labels) || !Array.isArray(data.data)) {
+                    throw new Error('Invalid chart data format');
+                }
+                
+                // Clear any previous error message and retry button
+                const errorElement = document.getElementById('chart-error');
+                if (errorElement) {
+                    errorElement.remove();
+                }
+                const retryButton = chartElement.parentNode.querySelector('button');
+                if (retryButton) {
+                    retryButton.remove();
+                }
+                
+                // Create the chart
+                window.foodChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Total Food',
+                            data: data.data,
+                            backgroundColor: 'rgba(13, 110, 253, 0.5)',
+                            borderColor: 'rgba(13, 110, 253, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Food Quantity',
+                                    color: '#dee2e6'
+                                },
+                                ticks: {
+                                    color: '#dee2e6',
+                                    stepSize: 1
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Date',
+                                    color: '#dee2e6'
+                                },
+                                ticks: {
+                                    color: '#dee2e6',
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#dee2e6'
+                                }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                borderColor: 'rgba(255, 255, 255, 0.1)',
+                                borderWidth: 1,
+                                callbacks: {
+                                    label: function(context) {
+                                        return ` ${context.parsed.y} ${context.parsed.y === 1 ? 'cup' : 'cups'}`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error loading chart data:', error);
+                
+                // Clear the canvas
+                ctx.clearRect(0, 0, chartElement.width, chartElement.height);
+                
+                // Show error message
+                ctx.save();
+                ctx.fillStyle = '#ff4444';
+                ctx.fillRect(0, 0, chartElement.width, 30);
+                ctx.fillStyle = '#fff';
+                ctx.textAlign = 'center';
+                ctx.fillText('Error loading chart data', chartElement.width / 2, 20);
+                ctx.restore();
+                
+                // Add retry button
+                const retryButton = document.createElement('button');
+                retryButton.textContent = 'Retry';
+                retryButton.className = 'btn btn-sm btn-outline-light mt-2';
+                retryButton.style.position = 'absolute';
+                retryButton.style.left = '50%';
+                retryButton.style.top = '50%';
+                retryButton.style.transform = 'translate(-50%, -50%)';
+                retryButton.onclick = initializeChart;
+                
+                const container = chartElement.parentNode;
+                container.style.position = 'relative';
+                container.appendChild(retryButton);
+            });
+    }
+
+
+    // Store the chart initialization timeout
+    let chartInitTimeout;
+    
+    // Function to safely initialize the chart
+    function safeInitializeChart() {
+        const chartElement = document.getElementById('foodHistogram');
+        if (chartElement) {
+            initializeChart();
+            return true;
+        }
+        return false;
+    }
+    
+    // Initialize the chart when the content is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Clear any pending initialization
+        if (chartInitTimeout) clearTimeout(chartInitTimeout);
+        // Small delay to ensure the chart container is in the DOM
+        chartInitTimeout = setTimeout(safeInitializeChart, 100);
+    });
+    
+    // Reinitialize chart when HTMX swaps content
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        if (evt.detail.target.id === 'main-content') {
+            // Clear any pending initialization
+            if (chartInitTimeout) clearTimeout(chartInitTimeout);
+            // Small delay to ensure the chart container is in the DOM
+            chartInitTimeout = setTimeout(safeInitializeChart, 100);
+        }
+    });
+    
+    // Clean up on beforeunload
+    window.addEventListener('beforeunload', function() {
+        if (chartInitTimeout) clearTimeout(chartInitTimeout);
+    });
+    
+    // Initialize immediately if the chart container is already in the DOM
+    safeInitializeChart();
+</script>

@@ -1,0 +1,23 @@
+<div id="food-log-form-container">
+    {% include 'foodtracker/partials/food_log_form.html' %}
+</div>
+<div class="table-responsive">
+    <table class="table table-dark table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Timestamp</th>
+                <th>Food Quantity</th>
+                <th>Water Quantity</th>
+            </tr>
+        </thead>
+        <tbody id="food-log-table-body">
+            {% for log in food_logs %}
+                {% include 'foodtracker/partials/food_log_row.html' %}
+            {% empty %}
+                <tr>
+                    <td colspan="3" class="text-center">No food logs available.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
