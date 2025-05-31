@@ -26,16 +26,16 @@ class TestListFoodLogsView(TestCase):
         
         # Check that the response contains our test data
         content = response.content.decode()
-        self.assertIn("2025-05-11 14:30:00", content)  # First datetime
-        self.assertIn("2025-05-11 15:30:00", content)  # Second datetime
+        self.assertIn('data-utc-dt="2025-05-11T14:30:00+00:00"', content)  # First datetime (ISO8601)
+        self.assertIn('data-utc-dt="2025-05-11T15:30:00+00:00"', content)  # Second datetime (ISO8601)
         self.assertIn("100", content)  # First food_qty
         self.assertIn("200", content)  # First water_qty
         self.assertIn("300", content)  # Second food_qty
         self.assertIn("400", content)  # Second water_qty
         
         # Verify order (newest first)
-        first_pos = content.find("2025-05-11 15:30:00")
-        second_pos = content.find("2025-05-11 14:30:00")
+        first_pos = content.find('data-utc-dt="2025-05-11T15:30:00+00:00"')
+        second_pos = content.find('data-utc-dt="2025-05-11T14:30:00+00:00"')
         self.assertLess(first_pos, second_pos)  # Newer date should appear first
 
 
