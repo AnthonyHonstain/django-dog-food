@@ -11,6 +11,7 @@
     <meta name="csrf-token" content="{{ csrf_token }}">
 
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- HTMX CSRF setup -->
     <script>
@@ -25,12 +26,21 @@
     </script>
 
     <style>
-        body { background-color: #181a1b !important; }
+        body {
+            background-color: #181a1b !important;
+        }
     </style>
 </head>
 <body>
 <div class="container mt-4 bg-dark text-light rounded-3 p-4">
     <h1 class="mb-4">Food & Water Log</h1>
+
+    <div class="card bg-dark border-secondary mb-4">
+        <div class="card-header">Daily Food Intake</div>
+        <div class="card-body">
+            <canvas id="foodHistogram" height="200"></canvas>
+        </div>
+    </div>
 
     <div id="food-log-form-container">
         {% include 'foodtracker/partials/food_log_form.html' %}
@@ -75,8 +85,108 @@
         });
     }
 
-    document.addEventListener('DOMContentLoaded', formatLocalDatetimes);
-    document.body.addEventListener('htmx:afterSwap', formatLocalDatetimes);
+    function initializeChart() {
+        // Get the data from the table
+        const rows = document.querySelectorAll('#food-log-table-body tr');
+        const dataByDay = {};
+
+        // Group data by day
+        rows.forEach(row => {
+            const dateCell = row.querySelector('.local-datetime');
+            if (!dateCell) return;
+
+            const dateStr = dateCell.textContent.trim().split(' ')[0]; // Get just the date part
+            const foodQty = parseFloat(row.cells[1].textContent.trim()) || 0;
+
+            if (!dataByDay[dateStr]) {
+                dataByDay[dateStr] = 0;
+            }
+            dataByDay[dateStr] += foodQty;
+        });
+
+        // Sort dates chronologically
+        const sortedDates = Object.keys(dataByDay).sort((a, b) => new Date(a) - new Date(b));
+        const chartData = sortedDates.map(date => dataByDay[date]);
+
+        // Create the chart
+        const ctx = document.getElementById('foodHistogram').getContext('2d');
+        if (window.foodChart) {
+            window.foodChart.destroy();
+        }
+
+        window.foodChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: sortedDates,
+                datasets: [{
+                    label: 'Total Food',
+                    data: chartData,
+                    backgroundColor: 'rgba(13, 110, 253, 0.5)',
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Food Quantity',
+                            color: '#dee2e6'
+                        },
+                        ticks: {
+                            color: '#dee2e6'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date',
+                            color: '#dee2e6'
+                        },
+                        ticks: {
+                            color: '#dee2e6',
+                            maxRotation: 45,
+                            minRotation: 45
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#dee2e6'
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1
+                    }
+                }
+            }
+        });
+    }
+
+    function initializePage() {
+        formatLocalDatetimes();
+        initializeChart();
+    }
+
+    document.addEventListener('DOMContentLoaded', initializePage);
+    document.body.addEventListener('htmx:afterSwap', initializePage);
 </script>
 </body>
 </html>
