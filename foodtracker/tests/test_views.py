@@ -60,6 +60,7 @@ class TestAddFoodLogView(TestCase):
             {
                 "food_qty": 42,
                 "water_qty": 37,
+                "teeth_brush": True,
             },
         )
 
@@ -74,6 +75,7 @@ class TestAddFoodLogView(TestCase):
         food_log = FoodLog.objects.latest("id")
         self.assertEqual(food_log.food_qty, 42)
         self.assertEqual(food_log.water_qty, 37)
+        self.assertTrue(food_log.teeth_brush)
         self.assertIsNotNone(food_log.feeddatetime)
 
         # The feeddatetime should be recent (within 1 minute of now)
@@ -90,6 +92,7 @@ class TestAddFoodLogView(TestCase):
             {
                 "food_qty": 150,  # Invalid: exceeds max of 99
                 "water_qty": 200,  # Invalid: exceeds max of 99
+                "teeth_brush": False
             },
         )
 

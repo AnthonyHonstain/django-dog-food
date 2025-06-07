@@ -1,20 +1,31 @@
-<form id="food-log-form" method="POST" action="{% url 'add_food_log' %}" class="row g-2 align-items-center mb-2 bg-dark text-light rounded-2 p-2">
+<form id="food-log-form" method="POST" action="{% url 'add_food_log' %}" class="d-flex flex-nowrap align-items-end gap-2 mb-2 bg-dark text-light rounded-2 p-2 overflow-x-auto">
     {% csrf_token %}
-    <div class="col-auto">
-        <label for="id_food_qty" class="form-label mb-0">Food Qty</label>
-        <input type="number" name="food_qty" min="0" max="99" class="form-control form-control-sm form-control-dark bg-dark text-light {% if form.food_qty.errors %}is-invalid{% endif %}" id="id_food_qty" value="{{ form.food_qty.value|default:'' }}" required>
+    <div class="flex-shrink-0">
+        <label for="id_food_qty" class="form-label mb-0">Food</label>
+        <input type="number" name="food_qty" min="0" max="99" class="form-control form-control-sm form-control-dark bg-dark text-light {% if form.food_qty.errors %}is-invalid{% endif %}" id="id_food_qty" value="{{ form.food_qty.value|default:'' }}" required style="width: 80px;">
         {% for error in form.food_qty.errors %}
             <div class="invalid-feedback">{{ error }}</div>
         {% endfor %}
     </div>
-    <div class="col-auto">
-        <label for="id_water_qty" class="form-label mb-0">Water Qty</label>
-        <input type="number" name="water_qty" min="0" max="99" class="form-control form-control-sm form-control-dark bg-dark text-light {% if form.water_qty.errors %}is-invalid{% endif %}" id="id_water_qty" value="{{ form.water_qty.value|default:'' }}" required>
+    <div class="flex-shrink-0">
+        <label for="id_water_qty" class="form-label mb-0">Water</label>
+        <input type="number" name="water_qty" min="0" max="99" class="form-control form-control-sm form-control-dark bg-dark text-light {% if form.water_qty.errors %}is-invalid{% endif %}" id="id_water_qty" value="{{ form.water_qty.value|default:'' }}" required style="width: 80px;">
         {% for error in form.water_qty.errors %}
             <div class="invalid-feedback">{{ error }}</div>
         {% endfor %}
     </div>
-    <div class="col-auto pt-4">
+    <div class="flex-shrink-0">
+        <div class="d-flex flex-column align-items-center">
+            <label for="id_teeth_brush" class="form-label mb-0">{{ form.teeth_brush.label }}</label>
+            <div class="form-check form-switch mt-1">
+                <input type="checkbox" name="teeth_brush" class="form-check-input" id="id_teeth_brush" {% if form.teeth_brush.value %}checked{% endif %}>
+            </div>
+        </div>
+        {% for error in form.teeth_brush.errors %}
+            <div class="invalid-feedback d-block text-center">{{ error }}</div>
+        {% endfor %}
+    </div>
+    <div class="flex-shrink-0" style="margin-bottom: 4px;">
         <button type="submit" class="btn btn-primary btn-sm">Add</button>
     </div>
 </form>

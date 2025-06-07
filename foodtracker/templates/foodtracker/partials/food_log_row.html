@@ -2,4 +2,5 @@
     <td><span class="local-datetime" data-utc-dt="{{ log.feeddatetime|date:'c' }}">{{ log.feeddatetime|date:'c' }}</span></td>
     <td>{{ log.food_qty }}</td>
     <td>{{ log.water_qty }}</td>
+    <td>{% if log.teeth_brush %}✓{% endif %}</td>
 </tr>

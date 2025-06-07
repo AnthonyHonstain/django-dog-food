@@ -15,6 +15,7 @@ class TestFoodLogModel(TestCase):
             feeddatetime=test_datetime,
             food_qty=500,
             water_qty=1000,
+            teeth_brush=True,
         )
 
         # Retrieve the entry
@@ -23,6 +24,7 @@ class TestFoodLogModel(TestCase):
         # Verify the data
         self.assertEqual(retrieved_log.food_qty, 500)
         self.assertEqual(retrieved_log.water_qty, 1000)
+        self.assertTrue(retrieved_log.teeth_brush)
         self.assertEqual(retrieved_log.feeddatetime, test_datetime)
         # Verify datetime is in UTC
         self.assertTrue(timezone.is_aware(retrieved_log.feeddatetime))
