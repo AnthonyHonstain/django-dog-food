@@ -9,7 +9,7 @@ class TestFoodLogModel(TestCase):
     def test_create_and_retrieve_foodlog(self):
         # Create a fixed UTC datetime for testing
         test_datetime = datetime(2025, 5, 11, 14, 30, 0, tzinfo=ZoneInfo("UTC"))
-        
+
         # Create a food log entry
         food_log = FoodLog.objects.create(
             feeddatetime=test_datetime,

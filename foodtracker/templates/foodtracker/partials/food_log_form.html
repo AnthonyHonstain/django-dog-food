@@ -1,4 +1,4 @@
-<form id="food-log-form" method="POST" hx-post="{% url 'add_food_log' %}" hx-target="#food-log-table-body" hx-swap="afterbegin" class="row g-2 align-items-center mb-2 bg-dark text-light rounded-2 p-2">
+<form id="food-log-form" method="POST" action="{% url 'add_food_log' %}" class="row g-2 align-items-center mb-2 bg-dark text-light rounded-2 p-2">
     {% csrf_token %}
     <div class="col-auto">
         <label for="id_food_qty" class="form-label mb-0">Food Qty</label>

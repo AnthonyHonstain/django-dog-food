@@ -10,18 +10,14 @@
     <!-- CSRF token exposed for JavaScript -->
     <meta name="csrf-token" content="{{ csrf_token }}">
 
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- HTMX CSRF setup -->
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            document.body.addEventListener('htmx:configRequest', function (event) {
-                const token = document.querySelector('meta[name="csrf-token"]')?.content;
-                if (token) {
-                    event.detail.headers['X-CSRFToken'] = token;
-                }
-            });
+            // Initialize charts and local datetime formatting as needed
+            initializePage();
         });
     </script>
 
@@ -186,7 +182,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', initializePage);
-    document.body.addEventListener('htmx:afterSwap', initializePage);
+
 </script>
 </body>
 </html>
