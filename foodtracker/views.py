@@ -7,7 +7,7 @@ from foodtracker.forms import FoodLogForm
 def get_food_logs_context(form=None):
     """Helper function to get the common context for food log views."""
     return {
-        "food_logs": FoodLog.objects.all().order_by("-feeddatetime")[:100],
+        "food_logs": FoodLog.objects.all().order_by("-feeddatetime")[:50],
         "form": form or FoodLogForm(),
     }
 
