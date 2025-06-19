@@ -92,7 +92,7 @@ class TestAddFoodLogView(TestCase):
             {
                 "food_qty": 150,  # Invalid: exceeds max of 99
                 "water_qty": 200,  # Invalid: exceeds max of 99
-                "teeth_brush": False
+                "teeth_brush": False,
             },
         )
 

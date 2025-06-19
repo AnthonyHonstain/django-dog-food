@@ -6,9 +6,9 @@ class FoodLogForm(forms.ModelForm):
     teeth_brush = forms.BooleanField(
         required=False,
         widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
-        label="Teeth"
+        label="Teeth",
     )
-    
+
     class Meta:
         model = FoodLog
         fields = ["food_qty", "water_qty", "teeth_brush"]
