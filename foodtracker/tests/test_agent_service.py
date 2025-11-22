@@ -46,9 +46,9 @@ def test_build_prompt_exact(monkeypatch):
     prompt = _build_prompt([log1, log2])
 
     recent_json = (
-        '[{"feeddatetime":"2025-05-11T09:30:00+00:00",'
+        '[{"feeddatetime":"2025-05-11T02:30:00-07:00",'
         '"food_qty_g":100,"water_qty_ml":0,"teeth_brush":false},'
-        '{"feeddatetime":"2025-05-11T10:30:00+00:00",'
+        '{"feeddatetime":"2025-05-11T03:30:00-07:00",'
         '"food_qty_g":300,"water_qty_ml":0,"teeth_brush":false}]'
     )
 
@@ -56,7 +56,7 @@ def test_build_prompt_exact(monkeypatch):
         "Recent feeding so far is: "
         + recent_json
         + " Given that Biscuit needs regular meals and it is currently "
-        + "2025-10-25T19:16:47.123456+00:00"
+        + "2025-10-25T12:16:47.123456-07:00"
         + ", what should the next portion be?"
     )
 
@@ -116,9 +116,9 @@ def test_get_agent_suggestion_success(settings, monkeypatch):
     assert sent_json["include_guardrails_info"] is False
 
     recent_json = (
-        '[{"feeddatetime":"2025-05-11T15:30:00+00:00",'
+        '[{"feeddatetime":"2025-05-11T08:30:00-07:00",'
         '"food_qty_g":20,"water_qty_ml":0,"teeth_brush":false},'
-        '{"feeddatetime":"2025-05-11T14:30:00+00:00",'
+        '{"feeddatetime":"2025-05-11T07:30:00-07:00",'
         '"food_qty_g":10,"water_qty_ml":0,"teeth_brush":false}]'
     )
 
@@ -126,7 +126,7 @@ def test_get_agent_suggestion_success(settings, monkeypatch):
         "Recent feeding so far is: "
         + recent_json
         + " Given that Biscuit needs regular meals and it is currently "
-        + "2025-10-25T19:16:47.123456+00:00"
+        + "2025-10-25T12:16:47.123456-07:00"
         + ", what should the next portion be?"
     )
 

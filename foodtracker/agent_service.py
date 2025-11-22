@@ -1,10 +1,13 @@
 import json
+from zoneinfo import ZoneInfo
 
 import httpx
 from django.conf import settings
 from django.utils import timezone
 
 from foodtracker.models import FoodLog
+
+PACIFIC_TZ = ZoneInfo("America/Los_Angeles")
 
 
 def _call_agent_with_prompt(prompt: str) -> str:
@@ -38,13 +41,13 @@ def _build_prompt(food_logs: list[FoodLog]) -> str:
     """
     Build the prompt string we send to the agent.
     """
-    now_utc = timezone.now().isoformat()
+    now_pt = timezone.localtime(timezone.now(), PACIFIC_TZ).isoformat()
     recent_entries = [log.to_llm_dict() for log in food_logs]
     recent_json = json.dumps(recent_entries, separators=(",", ":"))
     prompt = (
         "Recent feeding so far is: "
         + recent_json
-        + f" Given that Biscuit needs regular meals and it is currently {now_utc}, what should the next portion be?"
+        + f" Given that Biscuit needs regular meals and it is currently {now_pt}, what should the next portion be?"
     )
     # TODO - add in logging framework
     # print(prompt)

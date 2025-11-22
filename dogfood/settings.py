@@ -148,5 +148,5 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-AGENT_ENDPOINT = os.getenv("AGENT_ENDPOINT")
+AGENT_ENDPOINT = os.getenv("AGENT_ENDPOINT", "")
 AGENT_ACCESS_KEY = os.getenv("django_dog_food_access_key")

@@ -13,7 +13,7 @@
 * `python manage.py createsuperuser`
 * `python manage.py runserver 8002`
     *  Alternatively can run with gunicorn `gunicorn --bind 0.0.0.0:8002 dogfood.wsgi -w 1`
-* `python manage.py test`
+* `pytest -v`
 * `mypy .`
 * `black .`
 
