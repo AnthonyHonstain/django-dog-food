@@ -1,4 +1,3 @@
-from unittest.mock import patch
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -33,8 +32,7 @@ class TestListFoodLogsView(TestCase):
         _make_foodlog(hour=14, food_qty=100, water_qty=200)
         _make_foodlog(hour=15, food_qty=300, water_qty=400)
 
-    @patch("foodtracker.views.get_agent_suggestion", return_value="stub suggestion")
-    def test_list_food_logs(self, mock_agent):
+    def test_list_food_logs(self):
         response = self.client.get(reverse("list_food_logs"))
         self.assertEqual(response.status_code, 200)
 
@@ -54,10 +52,6 @@ class TestListFoodLogsView(TestCase):
         first_pos = content.find('data-utc-dt="2025-05-11T15:30:00+00:00"')
         second_pos = content.find('data-utc-dt="2025-05-11T14:30:00+00:00"')
         self.assertLess(first_pos, second_pos)
-
-        # We should have injected the mocked agent suggestion into the template
-        mock_agent.assert_called_once()
-        self.assertIn("stub suggestion", content)
 
         # And the view should include the form (implicit check: submit button is present)
         self.assertIn('<form id="food-log-form"', content)
